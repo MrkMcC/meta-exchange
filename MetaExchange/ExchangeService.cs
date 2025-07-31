@@ -62,9 +62,9 @@ public class ExchangeService
         var suggestions = _exchanges.Select(e => SuggestBestTransaction(orderType, amount, e, plannedTransactions.Where(t => t.ExchangeId.Equals(e.Id)).Select(t => t.OrderId)));
 
         if (orderType == OrderType.Buy)
-            suggestions = suggestions.OrderBy(x => x.Price);
-        else
             suggestions = suggestions.OrderByDescending(x => x.Price);
+        else
+            suggestions = suggestions.OrderBy(x => x.Price);
 
         return suggestions.First();
     }
