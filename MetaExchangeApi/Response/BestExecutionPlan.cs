@@ -2,5 +2,5 @@
 
 public class BestExecutionPlan
 {
-    public ExchangeExecutionPlan[] ExecutionPlan { get; set; } = [];
+    public ExchangeExecutionPlan[] BestExecution { get; set; } = [];
 }

@@ -15,7 +15,7 @@ public class MetaExchangeApiService(ExchangeService exchangeService)
 
         return new BestExecutionPlan
         {
-            ExecutionPlan = [.. suggestedTransactions
+            BestExecution = [.. suggestedTransactions
                 .Select(t => t.ExchangeId)
                 .Distinct()
                 .Select(id => new ExchangeExecutionPlan
