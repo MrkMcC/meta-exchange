@@ -1,7 +1,8 @@
 ﻿namespace MetaExchange;
 
+using MetaExchange.Common.Enum;
 using MetaExchange.Common.Exchange;
-using MetaExchange.Common.TransactionRecommendation;
+using MetaExchange.Common.Suggestion;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -38,30 +39,55 @@ public class ExchangeService
         return [.. exchanges];
     }
 
-    public PlannedTransaction[] FindBestAsks(decimal BTC)
+    public SuggestedTransaction[] SuggestBestTransactions(OrderType orderType, decimal totalAmountBTC)
     {
-        List<PlannedTransaction> plannedTransactions = [];
-        var remainingBtc = BTC;
+        List<SuggestedTransaction> suggestedTransactions = [];
+        var remainingBtc = totalAmountBTC;
 
         while (remainingBtc > 0)
         {
-            var bestTransaction = FindBestAskTransaction(remainingBtc, plannedTransactions);
-
-            plannedTransactions.Add(bestTransaction);
+            var bestTransaction = SuggestBestTransaction(orderType, remainingBtc, suggestedTransactions);
+            suggestedTransactions.Add(bestTransaction);
             remainingBtc -= bestTransaction.Amount;
         }
 
-        return [.. plannedTransactions];
+        return [.. suggestedTransactions];
     }
 
-    private PlannedTransaction FindBestAskTransaction(decimal amount, params IEnumerable<PlannedTransaction> plannedTransactions)
+    private SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, params IEnumerable<SuggestedTransaction> plannedTransactions)
     {
-        return _exchanges.Select(e => FindBestAsk(amount, e, plannedTransactions.Where(t => t.ExchangeId.Equals(e.Id)).Select(t => t.OrderId))).OrderBy(x => x.Price).First();
+        var suggestions = _exchanges.Select(e => SuggestBestTransaction(orderType, amount, e, plannedTransactions.Where(t => t.ExchangeId.Equals(e.Id)).Select(t => t.OrderId)));
+
+        if (orderType == OrderType.Buy)
+            suggestions = suggestions.OrderBy(x => x.Price);
+        else
+            suggestions = suggestions.OrderByDescending(x => x.Price);
+
+        return suggestions.First();
     }
 
-    private static PlannedTransaction FindBestAsk(decimal amount, Exchange exchange, params IEnumerable<string> excludeOrders)
+    private static SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, Exchange exchange, params IEnumerable<string> excludeOrders)
     {
-        var bestAsk = exchange.OrderBook.Asks.Where(a => !excludeOrders.Contains(a.Order.Id)).OrderBy(a => a.Order.Price).First().Order;
-        return new PlannedTransaction(exchange.Id, bestAsk, Math.Min(amount, Math.Min(bestAsk.Amount, exchange.AvailableFunds.Crypto)));
+        var orders = GetOrdersByType(exchange, orderType);
+        var bestOffer = GetBestOffer(orders.Where(a => !excludeOrders.Contains(a.Id)), orderType);
+        return new SuggestedTransaction(exchange.Id, bestOffer, Math.Min(amount, Math.Min(bestOffer.Amount, exchange.AvailableFunds.Crypto)));
+    }
+
+    private static IEnumerable<Order> GetOrdersByType(Exchange exchange, OrderType orderType)
+    {
+        var orderBookentries = orderType == OrderType.Buy ? exchange.OrderBook.Bids : exchange.OrderBook.Asks;
+        return orderBookentries.Select(e => e.Order);
+    }
+
+    private static Order GetBestOffer(IEnumerable<Order> orders, OrderType orderType)
+    {
+        orders = orders.Where(o => o.Type == orderType);
+
+        if (orderType == OrderType.Buy)
+            orders = orders.OrderByDescending(x => x.Price);
+        else
+            orders = orders.OrderBy(x => x.Price);
+
+        return orders.First();
     }
 }

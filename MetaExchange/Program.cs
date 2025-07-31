@@ -5,12 +5,18 @@ using System.Globalization;
 Console.WriteLine("Starting MetaExchange Application...");
 Console.WriteLine("");
 
-//Console.WriteLine("Provide the order type (buy/sell):");
-//var inputOrderType = Console.ReadLine();
-var orderType = OrderType.Buy;
+Console.WriteLine("Buy or sell BTC?");
+Console.WriteLine("0 = Buy");
+Console.WriteLine("1 = Sell");
+IntendedTransactionType intendedTransactionType;
+var inputOrderType = Console.ReadLine();
+while (!Enum.TryParse<IntendedTransactionType>(inputOrderType, out intendedTransactionType) || !Enum.IsDefined<IntendedTransactionType>(intendedTransactionType))
+{
+    Console.WriteLine($"'{inputOrderType}' is not a valid input. Please choose 0 or 1.");
+    inputOrderType = Console.ReadLine();
+}
 
-
-Console.WriteLine($"{orderType} how many BTC? (Use '{CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator}' as a decimal separator.)");
+Console.WriteLine($"{intendedTransactionType} how many BTC? (Use '{CultureInfo.CurrentCulture.NumberFormat.NumberDecimalSeparator}' as a decimal separator.)");
 var inputOrderAmount = Console.ReadLine();
 
 decimal amount;
@@ -21,15 +27,16 @@ while (!decimal.TryParse(inputOrderAmount, CultureInfo.CurrentCulture, out amoun
 }
 
 Console.WriteLine();
-Console.WriteLine($"Finding the best orders to {orderType} {amount} BTC...");
+Console.WriteLine($"Finding the best orders to {intendedTransactionType} {amount} BTC...");
 
 var exchangeService = new ExchangeService();
-var result = exchangeService.FindBestAsks(amount);
+var orderType = intendedTransactionType == IntendedTransactionType.Buy ? OrderType.Sell : OrderType.Buy;
+var result = exchangeService.SuggestBestTransactions(orderType, amount);
 
 Console.WriteLine();
 Console.WriteLine("Here is the suggested execution plan:");
 foreach (var item in result)
-    Console.WriteLine($"{orderType} {item.Amount} BTC at {item.Price} Euro each | Exchange: {item.ExchangeId} Order: {item.OrderId}");
+    Console.WriteLine($"{intendedTransactionType} {item.Amount} BTC at {item.Price} Euro each | Exchange: {item.ExchangeId} Order: {item.OrderId}");
 
 Console.WriteLine();
 Console.WriteLine("Terminating MetaExchange...");
