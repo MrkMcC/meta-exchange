@@ -5,8 +5,10 @@ using MetaExchange.Common.Exchange;
 using MetaExchange.Common.Suggestion;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -22,7 +24,8 @@ public class ExchangeService
     private Exchange[] GetExchangeData()
     {
         var exchanges = new List<Exchange>();
-        foreach (string fileName in Directory.GetFiles("Exchanges", "*.json"))
+        var executingPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
+        foreach (string fileName in Directory.GetFiles($"{executingPath}/Exchanges", "*.json"))
         {
             using Stream stream = new FileStream(fileName, FileMode.Open);
             if (File.Exists(fileName) && stream.Length > 0)

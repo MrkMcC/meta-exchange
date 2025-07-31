@@ -10,9 +10,9 @@ Console.WriteLine("0 = Buy");
 Console.WriteLine("1 = Sell");
 IntendedTransactionType intendedTransactionType;
 var inputOrderType = Console.ReadLine();
-while (!Enum.TryParse<IntendedTransactionType>(inputOrderType, out intendedTransactionType) || !Enum.IsDefined<IntendedTransactionType>(intendedTransactionType))
+while (!Enum.TryParse<IntendedTransactionType>(inputOrderType, true, out intendedTransactionType) || !Enum.IsDefined<IntendedTransactionType>(intendedTransactionType))
 {
-    Console.WriteLine($"'{inputOrderType}' is not a valid input. Please choose 0 or 1.");
+    Console.WriteLine($"'{inputOrderType}' is not a valid input. Please input '0', '1', 'buy' or 'sell'.");
     inputOrderType = Console.ReadLine();
 }
 

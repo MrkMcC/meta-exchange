@@ -1,0 +1,6 @@
+@MetaExchangeApi_HostAddress = http://localhost:8080
+
+GET {{MetaExchangeApi_HostAddress}}/bestexecutionplan/{type}/{amount}
+Accept: application/json
+
+###
