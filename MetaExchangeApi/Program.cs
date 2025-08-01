@@ -9,12 +9,7 @@ var exchangeApiService = new MetaExchangeApiService(new ExchangeService());
 
 app.MapGet("/BTC/{type}/{amount}", IResult (string type, decimal amount) =>
 {
-    if (!Enum.TryParse<IntendedTransactionType>(type, true, out var transactionType))
-    {
-        return TypedResults.BadRequest($"Invalid transaction type: '/{type}/'. Try '/buy/' or '/sell/'.");
-    }
-
-    return TypedResults.Ok(exchangeApiService.GetBestExecutionPlan(transactionType, amount));
+    return exchangeApiService.GetBestExecutionPlan(type, amount);
 });
 
 app.Run();
