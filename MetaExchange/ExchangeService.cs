@@ -5,7 +5,6 @@ using MetaExchange.Common.Exchange;
 using MetaExchange.Common.Suggestion;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -16,9 +15,9 @@ public class ExchangeService
 {
     private readonly Exchange[] _exchanges;
     private readonly JsonSerializerOptions _serializerOptions = new() { Converters = { new JsonStringEnumConverter() } };
-    public ExchangeService()
+    public ExchangeService(Exchange[]? exchanges = null)
     {
-        _exchanges = GetExchangeData();
+        _exchanges = exchanges ?? GetExchangeData();
     }
 
     private Exchange[] GetExchangeData()
@@ -57,9 +56,9 @@ public class ExchangeService
         return [.. suggestedTransactions];
     }
 
-    private SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, params IEnumerable<SuggestedTransaction> plannedTransactions)
+    private SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, params IEnumerable<SuggestedTransaction> suggestedTransactions)
     {
-        var suggestions = _exchanges.Select(e => SuggestBestTransaction(orderType, amount, e, plannedTransactions.Where(t => t.ExchangeId.Equals(e.Id)).Select(t => t.OrderId)));
+        var suggestions = _exchanges.Select(e => SuggestBestTransaction(orderType, amount, e, suggestedTransactions.Where(t => t.ExchangeId.Equals(e.Id))));
 
         if (orderType == OrderType.Buy)
             suggestions = suggestions.OrderByDescending(x => x.Price);
@@ -69,28 +68,37 @@ public class ExchangeService
         return suggestions.First();
     }
 
-    private static SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, Exchange exchange, params IEnumerable<string> excludeOrders)
+    private static SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, Exchange exchange, params IEnumerable<SuggestedTransaction> suggestedTransactions)
     {
         var orders = GetOrdersByType(exchange, orderType);
-        var bestOffer = GetBestOffer(orders.Where(a => !excludeOrders.Contains(a.Id)), orderType);
-        return new SuggestedTransaction(exchange.Id, bestOffer, Math.Min(amount, Math.Min(bestOffer.Amount, exchange.AvailableFunds.Crypto)));
+        var bestOffer = GetBestOffer(orders.Where(a => !suggestedTransactions.Select(t => t.OrderId).Contains(a.Id)), orderType);
+        var remainingFunds = orderType == OrderType.Buy ? CalculateRemainingFundsEuro(exchange, suggestedTransactions) : CalculateRemainingFundsCrypto(exchange, suggestedTransactions);
+        return new SuggestedTransaction(exchange.Id, bestOffer, Math.Min(amount, Math.Min(bestOffer.Amount, remainingFunds)));
     }
 
     private static IEnumerable<Order> GetOrdersByType(Exchange exchange, OrderType orderType)
     {
         var orderBookentries = orderType == OrderType.Buy ? exchange.OrderBook.Bids : exchange.OrderBook.Asks;
-        return orderBookentries.Select(e => e.Order);
+        return orderBookentries.Select(e => e.Order).Where(o => o.Type == orderType);
     }
 
     private static Order GetBestOffer(IEnumerable<Order> orders, OrderType orderType)
     {
-        orders = orders.Where(o => o.Type == orderType);
-
         if (orderType == OrderType.Buy)
             orders = orders.OrderByDescending(x => x.Price);
         else
             orders = orders.OrderBy(x => x.Price);
 
         return orders.First();
+    }
+
+    private static decimal CalculateRemainingFundsCrypto(Exchange exchange, IEnumerable<SuggestedTransaction> transactions)
+    {
+        return exchange.AvailableFunds.Crypto - transactions.Where(t => t.ExchangeId.Equals(exchange.Id) && t.OrderType == OrderType.Sell).Select(t => t.Amount).Sum();
+    }
+
+    private static decimal CalculateRemainingFundsEuro(Exchange exchange, IEnumerable<SuggestedTransaction> transactions)
+    {
+        return exchange.AvailableFunds.Euro - transactions.Where(t => t.ExchangeId.Equals(exchange.Id) && t.OrderType == OrderType.Buy).Select(t => t.Amount * t.Price).Sum();
     }
 }
