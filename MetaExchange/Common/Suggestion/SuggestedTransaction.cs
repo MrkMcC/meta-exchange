@@ -3,11 +3,24 @@ using MetaExchange.Common.Exchange;
 
 namespace MetaExchange.Common.Suggestion;
 
-public class SuggestedTransaction(string exchangeId, Order order, decimal amount)
+public class SuggestedTransaction
 {
-    public readonly string ExchangeId = exchangeId;
-    public readonly string OrderId = order.Id;
-    public readonly OrderType OrderType = order.Type;
-    public readonly decimal Price = order.Price;
-    public readonly decimal Amount = amount;
+    public SuggestedTransaction(string exchangeId, Order order, decimal amount)
+    {
+        ArgumentException.ThrowIfNullOrEmpty(exchangeId);
+        ArgumentNullException.ThrowIfNull(order);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(amount);
+
+        ExchangeId = exchangeId;
+        OrderId = order.Id;
+        OrderType = order.Type;
+        Price = order.Price;
+        Amount = amount;
+    }
+
+    public readonly string ExchangeId;
+    public readonly string OrderId;
+    public readonly OrderType OrderType;
+    public readonly decimal Price;
+    public readonly decimal Amount;
 }

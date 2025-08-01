@@ -4,7 +4,7 @@ using MetaExchange.Common.Enum;
 
 public class Order
 {
-    public string? Id { get; set; }
+    public required string Id { get; set; }
     public DateTime Time { get; set; }
     public OrderType Type { get; set; }
     public OrderKind Kind { get; set; }
