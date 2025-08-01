@@ -19,6 +19,8 @@ public class ExchangeService
 
     public SuggestionResult SuggestBestTransactions(OrderType orderType, decimal totalAmountBTC)
     {
+        try
+        {
         List<SuggestedTransaction> suggestedTransactions = [];
         var remainingBtc = totalAmountBTC;
 
@@ -29,7 +31,12 @@ public class ExchangeService
             remainingBtc -= bestTransaction.Amount;
         }
 
-        return new SuggestionResult { SuggestedTransactions = [.. suggestedTransactions] };
+            return new SuggestionResult { Success=true, SuggestedTransactions = [.. suggestedTransactions] };
+    }
+        catch (Exception ex)
+        {
+            return new SuggestionResult { Success = false, Exception = ex };
+        }
     }
 
     private SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, params IEnumerable<SuggestedTransaction> suggestedTransactions)

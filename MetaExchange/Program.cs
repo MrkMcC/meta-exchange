@@ -43,7 +43,16 @@ if (result.Success)
 else
 {
     Console.WriteLine("Could not fulfil the request.");
-    Console.WriteLine(result.ErrorMessage);
+    if (result.Exception != null)
+    {
+        Console.WriteLine(result.Exception.GetType());
+        Console.WriteLine(result.Exception.Message);
+    }
+}
+
+if (result.Message != null)
+{
+    Console.WriteLine(result.Message);
 }
 
 Console.WriteLine();
