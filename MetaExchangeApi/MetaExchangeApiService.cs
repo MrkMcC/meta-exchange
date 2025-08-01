@@ -11,17 +11,17 @@ public class MetaExchangeApiService(ExchangeService exchangeService)
     public BestExecutionPlan GetBestExecutionPlan(IntendedTransactionType transactionType, decimal amountBtc)
     {
         var orderType = transactionType == IntendedTransactionType.Buy ? OrderType.Sell : OrderType.Buy;
-        var suggestedTransactions = _exchangeService.SuggestBestTransactions(orderType, amountBtc);
+        var result = _exchangeService.SuggestBestTransactions(orderType, amountBtc);
 
         return new BestExecutionPlan
         {
-            BestExecution = [.. suggestedTransactions
+            BestExecution = [.. result.SuggestedTransactions
                 .Select(t => t.ExchangeId)
                 .Distinct()
                 .Select(id => new ExchangeExecutionPlan
                     {
                     ExchangeId = id,
-                    Orders = [.. suggestedTransactions
+                    Orders = [.. result.SuggestedTransactions
                         .Where(t => t.ExchangeId.Equals(id))
                         .Select(t => new OrderExecutionPlan { OrderId = t.OrderId, Amount = t.Amount })
                         ]

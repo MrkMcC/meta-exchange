@@ -28,15 +28,23 @@ while (!decimal.TryParse(inputOrderAmount, CultureInfo.CurrentCulture, out amoun
 
 Console.WriteLine();
 Console.WriteLine($"Finding the best orders to {intendedTransactionType} {amount} BTC...");
+Console.WriteLine();
 
 var exchangeService = new ExchangeService();
 var orderType = intendedTransactionType == IntendedTransactionType.Buy ? OrderType.Sell : OrderType.Buy;
 var result = exchangeService.SuggestBestTransactions(orderType, amount);
 
-Console.WriteLine();
-Console.WriteLine("Here is the suggested execution plan:");
-foreach (var item in result)
-    Console.WriteLine($"{intendedTransactionType} {item.Amount} BTC at {item.Price} Euro each | Exchange: {item.ExchangeId} Order: {item.OrderId}");
+if (result.Success)
+{
+    Console.WriteLine("Here is the suggested execution plan:");
+    foreach (var item in result.SuggestedTransactions)
+        Console.WriteLine($"{intendedTransactionType} {item.Amount} BTC at {item.Price} Euro each | Exchange: {item.ExchangeId} Order: {item.OrderId}");
+}
+else
+{
+    Console.WriteLine("Could not fulfil the request.");
+    Console.WriteLine(result.ErrorMessage);
+}
 
 Console.WriteLine();
 Console.WriteLine("Terminating MetaExchange...");

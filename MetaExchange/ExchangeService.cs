@@ -17,7 +17,7 @@ public class ExchangeService
         _exchanges = exchanges ?? ExchangeDataHelper.GetExchangeData();
     }
 
-    public SuggestedTransaction[] SuggestBestTransactions(OrderType orderType, decimal totalAmountBTC)
+    public SuggestionResult SuggestBestTransactions(OrderType orderType, decimal totalAmountBTC)
     {
         List<SuggestedTransaction> suggestedTransactions = [];
         var remainingBtc = totalAmountBTC;
@@ -29,7 +29,7 @@ public class ExchangeService
             remainingBtc -= bestTransaction.Amount;
         }
 
-        return [.. suggestedTransactions];
+        return new SuggestionResult { SuggestedTransactions = [.. suggestedTransactions] };
     }
 
     private SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, params IEnumerable<SuggestedTransaction> suggestedTransactions)
