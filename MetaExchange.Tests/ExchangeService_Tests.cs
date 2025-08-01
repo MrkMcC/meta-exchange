@@ -9,7 +9,6 @@ namespace MetaExchange.Tests;
 public class ExchangeService_Tests
 {
     private readonly Exchange[] _defaultExchangeData = ExchangeDataHelper.GetExchangeData();
-    private readonly string _executingPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
 
     private static void AssertSuccess(SuggestionResult result)
     {
@@ -105,8 +104,8 @@ public class ExchangeService_Tests
     public void Exchange_Orders_May_Deplete()
     {
         var exchangeService = new ExchangeService([
-            ExchangeDataHelper.GetExchangeDataFromFile($"{_executingPath}/TestData/exchange-01.json"),
-            ExchangeDataHelper.GetExchangeDataFromFile($"{_executingPath}/TestData/exchange_single-best-order.json")]);
+            ExchangeDataHelper.GetExchangeDataFromFile($"TestData/exchange-01.json"),
+            ExchangeDataHelper.GetExchangeDataFromFile($"TestData/exchange_single-best-order.json")]);
 
         var resultB = exchangeService.SuggestBestTransactions(OrderType.Sell, 1);
         AssertSuccess(resultB);
@@ -116,7 +115,7 @@ public class ExchangeService_Tests
     [Fact]
     public void Exceeding_Funds_Returns_Error()
     {
-        var exchangeService = new ExchangeService([ExchangeDataHelper.GetExchangeDataFromFile($"{_executingPath}/TestData/exchange_fund-limit.json")]);
+        var exchangeService = new ExchangeService([ExchangeDataHelper.GetExchangeDataFromFile($"TestData/exchange_fund-limit.json")]);
         var result = exchangeService.SuggestBestTransactions(OrderType.Buy, 0.5m);
         AssertHandledError(result);
         Assert.Contains("funds", result.Message);
@@ -125,7 +124,7 @@ public class ExchangeService_Tests
     [Fact]
     public void Exceeding_Availability_Returns_Error()
     {
-        var exchangeService = new ExchangeService([ExchangeDataHelper.GetExchangeDataFromFile($"{_executingPath}/TestData/exchange_single-best-order.json")]);
+        var exchangeService = new ExchangeService([ExchangeDataHelper.GetExchangeDataFromFile($"TestData/exchange_single-best-order.json")]);
         var result = exchangeService.SuggestBestTransactions(OrderType.Buy, 1);
         AssertHandledError(result);
         Assert.Contains("orders", result.Message);
