@@ -10,7 +10,7 @@ The port 32775 is arbitrary and can be changed.
 
 Visit ``http://localhost:32775/`` to view the Swagger documentation.
 
-The api endpoint can be accessed like this:
+The API endpoint can be accessed like this:
 ```
 http://localhost:32775/BTC/Buy/0.25
 http://localhost:32775/BTC/Sell/0.25
