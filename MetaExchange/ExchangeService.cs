@@ -22,6 +22,8 @@ public class ExchangeService
     {
         try
         {
+            AssertValidParameters(orderType, totalAmountBTC);
+
             List<SuggestedTransaction> suggestedTransactions = [];
             var remainingBtc = totalAmountBTC;
 
@@ -43,6 +45,14 @@ public class ExchangeService
         {
             return new SuggestionResult { Success = false, Exception = ex };
         }
+    }
+
+    private static void AssertValidParameters(OrderType orderType, decimal totalAmountBTC)
+    {
+        if (!Enum.IsDefined(orderType))
+            throw new MetaExchangeException($"'{orderType}' is not a valid order type.");
+        if (totalAmountBTC <= 0)
+            throw new MetaExchangeException($"The specified BTC amount must be a positive decimal number.");
     }
 
     private void AssertAvailability(OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions, decimal spentBtc)
