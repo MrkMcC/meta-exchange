@@ -22,18 +22,13 @@ public class MetaExchangeApiService(ExchangeService exchangeService)
         {
             return TypedResults.Ok(new BestExecutionPlan
             {
-                BestExecution = [.. result.SuggestedTransactions
-                .Select(t => t.ExchangeId)
-                .Distinct()
-                .Select(id => new ExchangeExecutionPlan
-                    {
-                    ExchangeId = id,
-                    Orders = [.. result.SuggestedTransactions
-                        .Where(t => t.ExchangeId.Equals(id))
-                        .Select(t => new OrderExecutionPlan { OrderId = t.OrderId, Amount = t.Amount })
-                        ]
-                    })
-                    ]
+                BestExecution = result.SuggestedTransactions
+                .GroupBy(x => x.ExchangeId)
+                .Select(g => new ExchangeExecutionPlan
+                {
+                    ExchangeId = g.Key,
+                    Orders = g.Select(t => new OrderExecutionPlan { OrderId = t.OrderId, Amount = t.Amount }).ToArray()
+                }).ToArray()
             });
         }
         else if (result.Exception != null)
