@@ -1,0 +1,33 @@
+{
+  "Id": "exchange_single-best-order",
+  "AvailableFunds": {
+    "Crypto": 10.8503,
+    "Euro": 117520.12
+  },
+  "OrderBook": {
+    "Bids": [
+      {
+        "Order": {
+          "Id": "6e9fe255-a776-4965-9bf4-9fd76361f5cb",
+          "Time": "2024-03-01T14:41:06.563Z",
+          "Type": "Buy",
+          "Kind": "Limit",
+          "Amount": 0.01,
+          "Price": 60000.00
+        }
+      }
+    ],
+    "Asks": [
+      {
+        "Order": {
+          "Id": "719f85c9-163e-471c-8edd-6702ecfef195",
+          "Time": "2024-03-01T00:46:50.389Z",
+          "Type": "Sell",
+          "Kind": "Limit",
+          "Amount": 0.01,
+          "Price": 55000.00
+        }
+      }
+    ]
+  }
+}
