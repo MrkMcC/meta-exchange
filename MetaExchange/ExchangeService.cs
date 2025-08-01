@@ -47,15 +47,16 @@ public class ExchangeService
 
     private void AssertAvailability(OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions, decimal spentBtc)
     {
+        var validAmount = $"{Math.Floor(spentBtc * 1000) / 1000:#.###}";
         var exchangesWithFunds = _exchanges.Where(e => HasRemainingFunds(e, orderType, suggestedTransactions));
         if (!exchangesWithFunds.Any())
         {
-            throw new MetaExchangeException($"The total available funds of all exchanges are insufficient to fulfil this request. The limit was reached at {spentBtc:G29} BTC.");
+            throw new MetaExchangeException($"The total available funds of all exchanges are insufficient to fulfil this request. The limit was reached at {validAmount} BTC.");
         }
         var availableExchanges = _exchanges.Where(e => HasRemainingOrders(e, orderType, suggestedTransactions));
         if (!availableExchanges.Any())
         {
-            throw new MetaExchangeException($"There are not enough orders available to fulfil this request. The limit was reached at {spentBtc:#.##} BTC.");
+            throw new MetaExchangeException($"There are not enough orders available to fulfil this request. The limit was reached at {validAmount} BTC.");
         }
     }
 
