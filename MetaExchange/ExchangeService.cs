@@ -1,6 +1,7 @@
 ﻿namespace MetaExchange;
 
 using MetaExchange.Common.Enum;
+using MetaExchange.Common.Exceptions;
 using MetaExchange.Common.Exchange;
 using MetaExchange.Common.Helper;
 using MetaExchange.Common.Suggestion;
@@ -21,27 +22,48 @@ public class ExchangeService
     {
         try
         {
-        List<SuggestedTransaction> suggestedTransactions = [];
-        var remainingBtc = totalAmountBTC;
+            List<SuggestedTransaction> suggestedTransactions = [];
+            var remainingBtc = totalAmountBTC;
 
-        while (remainingBtc > 0)
-        {
-            var bestTransaction = SuggestBestTransaction(orderType, remainingBtc, suggestedTransactions);
-            suggestedTransactions.Add(bestTransaction);
-            remainingBtc -= bestTransaction.Amount;
+            while (remainingBtc > 0)
+            {
+                AssertAvailability(orderType, suggestedTransactions, totalAmountBTC - remainingBtc);
+                var bestTransaction = SuggestBestTransaction(orderType, remainingBtc, suggestedTransactions);
+                suggestedTransactions.Add(bestTransaction);
+                remainingBtc -= bestTransaction.Amount;
+            }
+
+            return new SuggestionResult { Success = true, SuggestedTransactions = [.. suggestedTransactions] };
         }
-
-            return new SuggestionResult { Success=true, SuggestedTransactions = [.. suggestedTransactions] };
-    }
+        catch (MetaExchangeException ex)
+        {
+            return new SuggestionResult { Success = false, Message = ex.Message };
+        }
         catch (Exception ex)
         {
             return new SuggestionResult { Success = false, Exception = ex };
         }
     }
 
+    private void AssertAvailability(OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions, decimal spentBtc)
+    {
+        var exchangesWithFunds = _exchanges.Where(e => HasRemainingFunds(e, orderType, suggestedTransactions));
+        if (!exchangesWithFunds.Any())
+        {
+            throw new MetaExchangeException($"The total available funds of all exchanges are insufficient to fulfil this request. The limit was reached at {spentBtc:G29} BTC.");
+        }
+        var availableExchanges = _exchanges.Where(e => HasRemainingOrders(e, orderType, suggestedTransactions));
+        if (!availableExchanges.Any())
+        {
+            throw new MetaExchangeException($"There are not enough orders available to fulfil this request. The limit was reached at {spentBtc:#.##} BTC.");
+        }
+    }
+
     private SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, params IEnumerable<SuggestedTransaction> suggestedTransactions)
     {
-        var suggestions = _exchanges.Select(e => SuggestBestTransaction(orderType, amount, e, suggestedTransactions.Where(t => t.ExchangeId.Equals(e.Id))));
+        var availableExchanges = _exchanges.Where(e => HasRemainingFunds(e, orderType, suggestedTransactions) && HasRemainingOrders(e, orderType, suggestedTransactions));
+        var suggestions = availableExchanges.Select(e => SuggestBestTransaction(orderType, amount, e, suggestedTransactions.Where(t => t.ExchangeId.Equals(e.Id))));
+        suggestions = suggestions.Where(s => s != null);
 
         if (orderType == OrderType.Buy)
             suggestions = suggestions.OrderByDescending(x => x.Price);
@@ -54,7 +76,7 @@ public class ExchangeService
     private static SuggestedTransaction SuggestBestTransaction(OrderType orderType, decimal amount, Exchange exchange, params IEnumerable<SuggestedTransaction> suggestedTransactions)
     {
         var orders = GetOrdersByType(exchange, orderType);
-        var bestOffer = GetBestOffer(orders.Where(a => !suggestedTransactions.Select(t => t.OrderId).Contains(a.Id)), orderType);
+        var bestOffer = GetBestOffer(GetRemainingOrders(orders, suggestedTransactions), orderType);
 
         decimal btcFundLimit = orderType == OrderType.Buy ? CalculateRemainingFundsEuro(exchange, suggestedTransactions) / bestOffer.Price : CalculateRemainingFundsCrypto(exchange, suggestedTransactions);
 
@@ -86,5 +108,23 @@ public class ExchangeService
     private static decimal CalculateRemainingFundsEuro(Exchange exchange, IEnumerable<SuggestedTransaction> transactions)
     {
         return exchange.AvailableFunds.Euro - transactions.Where(t => t.ExchangeId.Equals(exchange.Id) && t.OrderType == OrderType.Buy).Select(t => t.Amount * t.Price).Sum();
+    }
+
+    private static IEnumerable<Order> GetRemainingOrders(IEnumerable<Order> orders, IEnumerable<SuggestedTransaction> suggestedTransactions)
+    {
+        return orders.Where(o => !suggestedTransactions.Select(t => t.OrderId).Contains(o.Id));
+    }
+
+    private static bool HasRemainingOrders(Exchange exchange, OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions)
+    {
+        return GetRemainingOrders(GetOrdersByType(exchange, orderType), suggestedTransactions).Any();
+    }
+
+    private static bool HasRemainingFunds(Exchange exchange, OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions)
+    {
+        if (orderType == OrderType.Buy)
+            return CalculateRemainingFundsEuro(exchange, suggestedTransactions) > 0;
+        else
+            return CalculateRemainingFundsCrypto(exchange, suggestedTransactions) > 0;
     }
 }
