@@ -55,8 +55,11 @@ public class ExchangeService
     {
         var orders = GetOrdersByType(exchange, orderType);
         var bestOffer = GetBestOffer(orders.Where(a => !suggestedTransactions.Select(t => t.OrderId).Contains(a.Id)), orderType);
-        var remainingFunds = orderType == OrderType.Buy ? CalculateRemainingFundsEuro(exchange, suggestedTransactions) : CalculateRemainingFundsCrypto(exchange, suggestedTransactions);
-        return new SuggestedTransaction(exchange.Id, bestOffer, Math.Min(amount, Math.Min(bestOffer.Amount, remainingFunds)));
+
+        decimal btcFundLimit = orderType == OrderType.Buy ? CalculateRemainingFundsEuro(exchange, suggestedTransactions) / bestOffer.Price : CalculateRemainingFundsCrypto(exchange, suggestedTransactions);
+
+        var suggestedAmount = Math.Min(amount, Math.Min(bestOffer.Amount, btcFundLimit));
+        return new SuggestedTransaction(exchange.Id, bestOffer, suggestedAmount);
     }
 
     private static IEnumerable<Order> GetOrdersByType(Exchange exchange, OrderType orderType)
