@@ -57,7 +57,7 @@ public class ExchangeService
 
     private void AssertAvailability(OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions, decimal spentBtc)
     {
-        var validAmount = $"{Math.Floor(spentBtc * 1000) / 1000:#.###}";
+        var validAmount = $"{Math.Floor(spentBtc * 1000) / 1000}";
         var exchangesWithFunds = _exchanges.Where(e => HasRemainingFunds(e, orderType, suggestedTransactions));
         if (!exchangesWithFunds.Any())
         {
@@ -134,8 +134,8 @@ public class ExchangeService
     private static bool HasRemainingFunds(Exchange exchange, OrderType orderType, IEnumerable<SuggestedTransaction> suggestedTransactions)
     {
         if (orderType == OrderType.Buy)
-            return CalculateRemainingFundsEuro(exchange, suggestedTransactions) > 0;
+            return CalculateRemainingFundsEuro(exchange, suggestedTransactions) > 0.01m;
         else
-            return CalculateRemainingFundsCrypto(exchange, suggestedTransactions) > 0;
+            return CalculateRemainingFundsCrypto(exchange, suggestedTransactions) > 0m;
     }
 }
