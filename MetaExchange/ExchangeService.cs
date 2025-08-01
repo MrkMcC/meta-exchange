@@ -2,43 +2,19 @@
 
 using MetaExchange.Common.Enum;
 using MetaExchange.Common.Exchange;
+using MetaExchange.Common.Helper;
 using MetaExchange.Common.Suggestion;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 
 public class ExchangeService
 {
     private readonly Exchange[] _exchanges;
-    private readonly JsonSerializerOptions _serializerOptions = new() { Converters = { new JsonStringEnumConverter() } };
+
     public ExchangeService(Exchange[]? exchanges = null)
     {
-        _exchanges = exchanges ?? GetExchangeData();
-    }
-
-    private Exchange[] GetExchangeData()
-    {
-        var exchanges = new List<Exchange>();
-        var executingPath = Path.GetDirectoryName(Assembly.GetEntryAssembly()?.Location);
-        foreach (string fileName in Directory.GetFiles($"{executingPath}/Exchanges", "*.json"))
-        {
-            using Stream stream = new FileStream(fileName, FileMode.Open);
-            if (File.Exists(fileName) && stream.Length > 0)
-            {
-                using StreamReader reader = new(stream);
-                string fileContents = reader.ReadToEnd();
-                var exchange = JsonSerializer.Deserialize<Exchange>(fileContents, _serializerOptions);
-                if (exchange != null)
-                {
-                    exchanges.Add(exchange);
-                }
-            }
-        }
-        return [.. exchanges];
+        _exchanges = exchanges ?? ExchangeDataHelper.GetExchangeData();
     }
 
     public SuggestedTransaction[] SuggestBestTransactions(OrderType orderType, decimal totalAmountBTC)
