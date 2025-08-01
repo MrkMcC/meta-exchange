@@ -7,7 +7,7 @@ var app = builder.Build();
 
 var exchangeApiService = new MetaExchangeApiService(new ExchangeService());
 
-app.MapGet("/bestexecutionplan/BTC/{type}/{amount}", IResult (string type, decimal amount) =>
+app.MapGet("/BTC/{type}/{amount}", IResult (string type, decimal amount) =>
 {
     if (!Enum.TryParse<IntendedTransactionType>(type, true, out var transactionType))
     {

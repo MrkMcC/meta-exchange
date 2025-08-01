@@ -1,6 +1,6 @@
 @MetaExchangeApi_HostAddress = http://localhost:8080
 
-GET {{MetaExchangeApi_HostAddress}}/bestexecutionplan/BTC/{type}/{amount}
+GET {{MetaExchangeApi_HostAddress}}/BTC/{type}/{amount}
 Accept: application/json
 
 ###
