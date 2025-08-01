@@ -2,8 +2,8 @@
 
 public class Exchange
 {
-    public string? Id { get; set; }
-    public ExchangeFunds? AvailableFunds { get; set; }
-    public OrderBook? OrderBook { get; set; }
+    public required string Id { get; set; }
+    public required ExchangeFunds AvailableFunds { get; set; }
+    public required OrderBook OrderBook { get; set; }
 
 }

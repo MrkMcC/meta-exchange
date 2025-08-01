@@ -9,14 +9,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-public class ExchangeService
+public class ExchangeService(Exchange[]? exchanges = null)
 {
-    private readonly Exchange[] _exchanges;
-
-    public ExchangeService(Exchange[]? exchanges = null)
-    {
-        _exchanges = exchanges ?? ExchangeDataHelper.GetExchangeData();
-    }
+    private readonly Exchange[] _exchanges = exchanges ?? ExchangeDataHelper.GetExchangeData();
 
     public SuggestionResult SuggestBestTransactions(OrderType orderType, decimal totalAmountBTC)
     {

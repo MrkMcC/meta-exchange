@@ -2,5 +2,5 @@
 
 public class OrderBookEntry
 {
-    public Order? Order { get; set; }
+    public required Order Order { get; set; }
 }

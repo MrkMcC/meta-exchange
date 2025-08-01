@@ -7,5 +7,5 @@ public class SuggestionResult
 
     public Exception? Exception { get; set; }
 
-    public SuggestedTransaction[]? SuggestedTransactions { get; set; }
+    public SuggestedTransaction[] SuggestedTransactions { get; set; } = [];
 }

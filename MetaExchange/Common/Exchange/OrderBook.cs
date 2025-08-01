@@ -2,6 +2,6 @@
 
 public class OrderBook
 {
-    public OrderBookEntry[]? Bids { get; set; }
-    public OrderBookEntry[]? Asks { get; set; }
+    public required OrderBookEntry[] Bids { get; set; }
+    public required OrderBookEntry[] Asks { get; set; }
 }

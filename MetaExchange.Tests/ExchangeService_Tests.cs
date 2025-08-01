@@ -9,13 +9,13 @@ namespace MetaExchange.Tests;
 
 public class ExchangeService_Tests
 {
-    private Exchange[] _defaultExchangeData = ExchangeDataHelper.GetExchangeData();
+    private readonly Exchange[] _defaultExchangeData = ExchangeDataHelper.GetExchangeData();
 
     private static void AssertSuccess(SuggestionResult result)
     {
         Assert.True(result.Success);
         Assert.Null(result.Exception);
-        Assert.NotNull(result.SuggestedTransactions);
+        Assert.NotEmpty(result.SuggestedTransactions);
     }
 
     private static void AssertHandledError(SuggestionResult result)

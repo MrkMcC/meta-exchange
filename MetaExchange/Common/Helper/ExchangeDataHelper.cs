@@ -33,7 +33,7 @@ public static class ExchangeDataHelper
             using StreamReader reader = new(stream);
             string fileContents = reader.ReadToEnd();
             var exchange = JsonSerializer.Deserialize<Exchange>(fileContents, _serializerOptions);
-            return exchange;
+            return exchange ?? throw new FormatException($"Failed to deserializa file '{fileName}'");
         }
 
         throw new FileNotFoundException($"Could not find exchange data file: {fileName}");
