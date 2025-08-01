@@ -53,7 +53,7 @@ public class ExchangeService
         {
             throw new MetaExchangeException($"The total available funds of all exchanges are insufficient to fulfil this request. The limit was reached at {validAmount} BTC.");
         }
-        var availableExchanges = _exchanges.Where(e => HasRemainingOrders(e, orderType, suggestedTransactions));
+        var availableExchanges = exchangesWithFunds.Where(e => HasRemainingOrders(e, orderType, suggestedTransactions));
         if (!availableExchanges.Any())
         {
             throw new MetaExchangeException($"There are not enough orders available to fulfil this request. The limit was reached at {validAmount} BTC.");
