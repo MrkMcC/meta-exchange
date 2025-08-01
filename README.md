@@ -6,8 +6,9 @@ docker build . -t meta-exchange-api
 ```
 docker run -it --rm -p 32775:8080 --name MetaExchange meta-exchange-api  
 ```
-
 The port 32775 is arbitrary and can be changed.
+
+Visit ``http://localhost:32775/`` to view the Swagger documentation.
 
 The api endpoint can be accessed like this:
 ```
